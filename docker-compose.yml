@@ -1,0 +1,25 @@
+# Yerel geliştirme altyapısı: sadece Postgres.
+# Next.js'i host'ta çalıştır:  npm run dev
+# Başlat:  docker compose up -d
+name: fayans-dev
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fayans
+      POSTGRES_PASSWORD: fayans_dev_pw
+      POSTGRES_DB: fayans
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fayans -d fayans"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

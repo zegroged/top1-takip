@@ -1,0 +1,118 @@
+// Öpöz İnşaat — müşteri proje takip sistemi
+// Prisma 7 schema. Veritabanı: PostgreSQL 16.
+// TS tarafı camelCase, veritabanı tarafı snake_case (@map / @@map ile).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// Admin (panel yöneticisi / firma sahibi)
+// ============================================================
+model Admin {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("admins")
+}
+
+// ============================================================
+// Müşteri (proje sahibi) — sadece müşteri numarasıyla giriş yapar
+// ============================================================
+model Customer {
+  id                String    @id @default(cuid())
+  customerNo        String    @unique @map("customer_no")
+  name              String
+  phone             String?
+  address           String?
+  projectTitle      String?   @map("project_title")
+  description       String?
+  startDate         DateTime? @map("start_date")
+  estimatedDelivery DateTime? @map("estimated_delivery")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  tasks   Task[]
+  updates ProgressUpdate[]
+  photos  Photo[]
+
+  @@map("customers")
+}
+
+// ============================================================
+// İş kalemi (yapılacaklar listesi) — admin oluşturur, sıralı ilerler
+// (kırım → gaz beton → sıva → fayans → boya …)
+// ============================================================
+model Task {
+  id         String    @id @default(cuid())
+  customerId String    @map("customer_id")
+  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  title      String
+  order      Int       @default(0)
+  done       Boolean   @default(false)
+  doneAt     DateTime? @map("done_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  updates ProgressUpdate[]
+
+  @@index([customerId])
+  @@map("tasks")
+}
+
+// ============================================================
+// Günlük güncelleme (zaman çizelgesi) — admin gün gün ekler, fotoğraflı
+// ============================================================
+model ProgressUpdate {
+  id         String   @id @default(cuid())
+  customerId String   @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  taskId     String?  @map("task_id")
+  task       Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  title      String?
+  note       String?
+  date       DateTime @default(now())
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  photos Photo[]
+
+  @@index([customerId])
+  @@map("progress_updates")
+}
+
+// ============================================================
+// Fotoğraf — sunucu diskinde (public/uploads), filename ile saklanır
+// ============================================================
+model Photo {
+  id         String          @id @default(cuid())
+  customerId String          @map("customer_id")
+  customer   Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  updateId   String?         @map("update_id")
+  update     ProgressUpdate? @relation(fields: [updateId], references: [id], onDelete: SetNull)
+  filename   String
+  caption    String?
+  createdAt  DateTime        @default(now()) @map("created_at")
+
+  @@index([customerId])
+  @@index([updateId])
+  @@map("photos")
+}
+
+// ============================================================
+// Vitrin / Galeri — admin yükler, ana sayfada "Yaptığımız İşler"de görünür
+// ============================================================
+model ShowcaseItem {
+  id        String   @id @default(cuid())
+  title     String?
+  filename  String
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("showcase_items")
+}

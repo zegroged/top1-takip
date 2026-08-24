@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+/* Yedek parça teması — koyu, metalik, teknik. Çelik gri zemin + sıcak amber accent
+   (hero videosundaki altın Chevrolet parlamalarıyla uyumlu). Marka rengi netleşince accent güncellenir. */
+@theme {
+  --color-background: oklch(0.17 0.012 250);
+  --color-foreground: oklch(0.95 0.005 250);
+
+  --color-card: oklch(0.21 0.014 250);
+  --color-card-foreground: oklch(0.95 0.005 250);
+
+  --color-muted: oklch(0.26 0.014 250);
+  --color-muted-foreground: oklch(0.7 0.012 250);
+
+  --color-primary: oklch(0.8 0.13 78);
+  --color-primary-foreground: oklch(0.2 0.03 80);
+
+  --color-secondary: oklch(0.27 0.015 250);
+  --color-secondary-foreground: oklch(0.92 0.006 250);
+
+  --color-accent: oklch(0.33 0.02 250);
+  --color-accent-foreground: oklch(0.95 0.005 250);
+
+  --color-border: oklch(0.3 0.014 250);
+  --color-input: oklch(0.3 0.014 250);
+  --color-ring: oklch(0.8 0.13 78);
+
+  --color-destructive: oklch(0.62 0.21 25);
+  --color-destructive-foreground: oklch(0.99 0 0);
+
+  --color-success: oklch(0.68 0.15 150);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --radius: 0.75rem;
+}
+
+@layer base {
+  /* Pürüzsüz kaydırmayı Lenis yönetiyor (bkz. components/smooth-scroll.tsx).
+     Native scroll-behavior: smooth, Lenis + GSAP ScrollTrigger ile çakışır → kullanılmaz. */
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-primary) 30%, transparent);
+  }
+}
+
+/* Scroll ile beliren elemanlar için (landing animasyonları) */
+@layer utilities {
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+  .reveal.in {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Görsel/koyu zemin üstü yazılar için okunabilirlik */
+  .text-cine {
+    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.6);
+  }
+
+  /* İnce metalik çizgi/grid dokusu (teknik his) */
+  .tech-grid {
+    background-image:
+      linear-gradient(to right, color-mix(in oklab, var(--color-border) 60%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklab, var(--color-border) 60%, transparent) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+}
+
+/* Ken Burns: arka plan görsellerine yavaş, sinematik canlılık */
+@keyframes kenburns {
+  from {
+    transform: scale(1.03);
+  }
+  to {
+    transform: scale(1.16);
+  }
+}
+.kenburns {
+  animation: kenburns 26s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kenburns {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* GARANTİ: Mobilde (<lg = 1024px) reveal içerikleri JS'ten BAĞIMSIZ daima görünür.
+   .reveal opacity:0 ile başlayıp JS'in açmasını beklemiyor; mobilde hiç gizlenmiyor.
+   Fade-in animasyonu yalnız masaüstünde. Unlayered + !important → her zaman kazanır,
+   ScrollTrigger/IntersectionObserver/hydration ne olursa olsun içerik kaybolmaz. */
+@media (max-width: 1023px) {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

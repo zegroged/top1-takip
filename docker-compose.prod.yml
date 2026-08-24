@@ -1,0 +1,68 @@
+# Sunucu ([SUNUCU]) deploy stack'i: migrate + web + db.
+# Mevcut kafe-nginx ile paylaşılan "fayans_shared" ağı üzerinden yayınlanır;
+# nginx, to-p1.com isteklerini fayans-web:3000'e proxy'ler.
+#
+# İlk kurulum:  docker network create fayans_shared
+# Çalıştır:     docker compose -f docker-compose.prod.yml up -d --build
+# Gizli değerler aynı dizindeki .env dosyasından gelir (compose otomatik okur).
+name: fayans
+
+services:
+  # Önce migration'ları uygula, sonra web başlasın.
+  migrate:
+    build:
+      context: .
+      target: migrator
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  # Servis adı bilerek "web" DEĞİL: kafe-nginx de paylaşılan ağda olduğundan
+  # "web" alias'ı kafe'nin upstream'iyle çakışırdı. Sadece "fayans-web" alias'ı.
+  app:
+    build:
+      context: .
+      target: runner
+      args:
+        NEXT_PUBLIC_ROOT_DOMAIN: ${NEXT_PUBLIC_ROOT_DOMAIN:-to-p1.com}
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    expose:
+      - "3000"
+    volumes:
+      - uploads:/app/public/uploads
+    networks:
+      default: {}
+      web_shared:
+        aliases:
+          - fayans-web
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fayans
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: fayans
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fayans -d fayans"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
+  uploads:
+
+networks:
+  default: {}
+  web_shared:
+    external: true
+    name: fayans_shared
