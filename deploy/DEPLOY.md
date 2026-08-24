@@ -1,25 +1,26 @@
 # Fayans — Sunucu Deploy Notları
 
-Hedef sunucu: `root@[SUNUCU]`. Fayans, mevcut **kafe** (dijitalkafe.com) kurulumunun
-**yanına**, ayrı bir stack olarak kurulur. dijitalkafe.com'a dokunulmaz.
+Fayans, üretim sunucusunda kendi **Docker stack**'i olarak çalışır. Aynı sunucuda
+başka uygulamalar varsa Fayans onların **yanına**, ayrı ve bağımsız bir stack olarak
+kurulur; mevcut servisler etkilenmez.
 
 ## Mimari
-- Fayans kendi dizininde: `/root/fayans/` (kendi `docker-compose.prod.yml`).
+- Fayans kendi deploy dizininde çalışır (kendi `docker-compose.prod.yml`).
 - Servisler: `fayans-db`, `fayans-migrate`, `fayans-web` (expose 3000, dışa kapalı).
-- 80/443 portları mevcut **kafe-nginx**'te. Fayans, `fayans_shared` adlı
-  paylaşılan docker ağıyla nginx'e bağlanır.
-- `to-p1.com` istekleri kafe-nginx'ten `fayans-web:3000`'e proxy'lenir.
-- SSL zaten var: Cloudflare Origin cert `origin.crt` → `to-p1.com` + `*.to-p1.com` kapsıyor.
+- 80/443 portları sunucudaki **mevcut nginx reverse proxy**'dedir. Fayans, `fayans_shared`
+  adlı paylaşılan docker ağıyla bu nginx'e bağlanır.
+- `to-p1.com` istekleri nginx'ten `fayans-web:3000`'e proxy'lenir.
+- SSL: Cloudflare Origin sertifikası nginx'te mount'ludur (`to-p1.com` + `*.to-p1.com`).
 - Fotoğraflar `uploads` volume'unda; fayans-web `/foto/<dosya>` ile servis eder.
 
 ## 1) Kodu sunucuya gönder
 ```bash
-# (yerelden) rsync veya git. Örnek rsync:
+# (yerelden) rsync veya git ile deploy dizinine gönder. Örnek rsync:
 rsync -az --delete --exclude node_modules --exclude .next --exclude .git \
-  ./ root@[SUNUCU]:/root/fayans/
+  ./ <kullanici>@<sunucu>:<deploy-dizini>/
 ```
 
-## 2) Sunucuda .env oluştur (/root/fayans/.env)
+## 2) Sunucuda .env oluştur (<deploy-dizini>/.env)
 ```env
 NODE_ENV=production
 DATABASE_URL="postgresql://fayans:GUCLU_DB_SIFRESI@db:5432/fayans?schema=public"
@@ -37,20 +38,16 @@ ADMIN_PASSWORD=""
 ## 3) Paylaşılan ağı oluştur + stack'i başlat
 ```bash
 docker network create fayans_shared 2>/dev/null || true
-cd /root/fayans
+cd <deploy-dizini>
 docker compose -f docker-compose.prod.yml up -d --build
 docker compose -f docker-compose.prod.yml logs -f web   # kontrol
 ```
 
-## 4) kafe-nginx'i fayans'a bağla (TEK production dokunuşu)
-Yedek al:
-```bash
-cp /root/kafe/nginx/nginx.conf /root/kafe/nginx/nginx.conf.bak.$(date +%s)
-cp /root/kafe/docker-compose.prod.yml /root/kafe/docker-compose.prod.yml.bak.$(date +%s)
-```
+## 4) Mevcut nginx reverse proxy'yi fayans'a bağla (TEK production dokunuşu)
+Önce mevcut nginx yapılandırmasının (config + compose) yedeğini al.
 
-### 4a) kafe docker-compose.prod.yml → nginx servisine paylaşılan ağı ekle
-`nginx:` servisine:
+### 4a) nginx servisine paylaşılan ağı ekle
+Reverse proxy'nin `docker-compose` dosyasında `nginx:` servisine:
 ```yaml
     networks:
       - default
@@ -64,13 +61,12 @@ networks:
     external: true
 ```
 
-### 4b) kafe nginx.conf → to-p1.com bloklarını değiştir
-`upstream kafe_web {...}` yanına ekle:
+### 4b) nginx.conf → to-p1.com upstream + server bloğu
+Upstream ekle:
 ```nginx
 upstream fayans_web { server fayans-web:3000; }
 ```
-Mevcut **iki `to-p1.com` redirect server bloğunu** (apex+www ve `~^(?<sub>.+)\.to-p1\.com$`)
-SİL ve yerine şunu koy:
+`to-p1.com` için server bloğu (varsa mevcut redirect/placeholder bloklarının yerine):
 ```nginx
 # to-p1.com → FAYANS
 server {
@@ -83,8 +79,9 @@ server {
     client_max_body_size 30m;
     server_tokens off;
 
-    ssl_certificate     /etc/nginx/certs/origin.crt;
-    ssl_certificate_key /etc/nginx/certs/origin.key;
+    # Cloudflare Origin sertifikasının nginx'e mount edildiği yollar:
+    ssl_certificate     <origin-cert-yolu>;
+    ssl_certificate_key <origin-key-yolu>;
 
     location / {
         proxy_pass http://fayans_web;
@@ -102,19 +99,18 @@ server {
 
 ### 4c) nginx'i yeni ağ + config ile yeniden oluştur
 ```bash
-cd /root/kafe
 docker compose -f docker-compose.prod.yml up -d nginx
-docker exec kafe-nginx-1 nginx -t   # config testi
+docker exec <nginx-container> nginx -t   # config testi
 ```
 
 ## 5) Doğrula
 - https://to-p1.com → fayans ana sayfası
 - https://to-p1.com/admin/giris → ilk admin kurulumu
-- https://dijitalkafe.com → ETKİLENMEMELİ (hâlâ çalışıyor)
+- Sunucudaki diğer siteler → ETKİLENMEMELİ (hâlâ çalışıyor olmalı)
 
 ## Geri alma (rollback)
+Yedeğini aldığın nginx config + compose dosyalarını geri koy, sonra nginx'i yeniden oluştur:
 ```bash
-cp /root/kafe/nginx/nginx.conf.bak.<ts> /root/kafe/nginx/nginx.conf
-cp /root/kafe/docker-compose.prod.yml.bak.<ts> /root/kafe/docker-compose.prod.yml
-cd /root/kafe && docker compose -f docker-compose.prod.yml up -d nginx
+# yedekten geri yükle, ardından:
+docker compose -f docker-compose.prod.yml up -d nginx
 ```

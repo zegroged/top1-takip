@@ -11,6 +11,8 @@ const serverSchema = z.object({
   // --- Public ---
   NEXT_PUBLIC_ROOT_DOMAIN: z.string().default("to-p1.com"),
   NEXT_PUBLIC_APP_URL: z.string().optional(),
+  // Müşteriye gösterilen iletişim telefonu (phoneHref/whatsapp bundan türetilir).
+  NEXT_PUBLIC_FIRMA_TELEFON: z.string().optional(),
 
   // --- İlk admin kurulumu (opsiyonel) ---
   ADMIN_USERNAME: z.string().optional(),

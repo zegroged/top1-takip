@@ -5,15 +5,24 @@ export const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "to-p1.com";
 // firma adını/telefonunu verince burası güncellenecek.
 export const APP_NAME = "TOP1 Oto Yedek Parça";
 
+// İletişim telefonu ortam değişkeninden gelir. constants.ts client bileşenlerinde de
+// kullanıldığı için değişkenin NEXT_PUBLIC_ önekli olması gerekir (build'de gömülür).
+// Yerel gerçek değer .env'de (gitignore'lu) tutulur; yoksa boş yer tutucu kullanılır.
+const COMPANY_PHONE = process.env.NEXT_PUBLIC_FIRMA_TELEFON ?? "";
+// Tek telefon değerinden türet (phoneHref/whatsapp'i tekrar sabit yazma):
+// rakamları çıkar, ülke kodu (90) veya baştaki 0'ı at → 10 haneli ulusal numara.
+const COMPANY_PHONE_NATIONAL = COMPANY_PHONE.replace(/\D/g, "").replace(/^(?:90|0)/, "");
+const COMPANY_PHONE_INTL = COMPANY_PHONE_NATIONAL ? `90${COMPANY_PHONE_NATIONAL}` : "";
+
 export const COMPANY = {
   name: "TOP1 Oto Yedek Parça",
   short: "TOP1 PARÇA",
   tagline: "Her marka, her parça — hızlı temin, garantili",
   description:
     "Binek ve ticari araçlar için motor, fren, süspansiyon, kaporta ve elektrik parçaları. Tüm markalar tek adreste; orijinal/eşdeğer seçenekler, hızlı temin ve servis.",
-  phone: "[TELEFON]",
-  phoneHref: "tel:+[TELEFON]",
-  whatsapp: "https://wa.me/[TELEFON]",
+  phone: COMPANY_PHONE,
+  phoneHref: COMPANY_PHONE_INTL ? `tel:+${COMPANY_PHONE_INTL}` : "",
+  whatsapp: COMPANY_PHONE_INTL ? `https://wa.me/${COMPANY_PHONE_INTL}` : "",
   email: "info@to-p1.com",
   address: "Konya, Türkiye",
 };

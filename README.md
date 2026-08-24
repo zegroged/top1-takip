@@ -31,4 +31,4 @@ npm run dev                     # http://localhost:3000
 
 ## Deploy
 Sunucuya kurulum adımları: [deploy/DEPLOY.md](deploy/DEPLOY.md).
-Hedef: `to-p1.com`, sunucu `[SUNUCU]` (mevcut kafe/dijitalkafe yanında, ayrı stack).
+Hedef: `to-p1.com` — üretim sunucusunda, Cloudflare arkasında, ayrı bir Docker stack olarak yayınlanır.
