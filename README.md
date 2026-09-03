@@ -136,4 +136,4 @@ It is published because the code is a fair sample of how I work: a real database
 
 AGPL-3.0 — see [LICENSE](LICENSE).
 
-This is a running commercial product, not a reference implementation. The AGPL is deliberate: anyone may read, learn from, and modify this code, but running a modified version as a network service requires publishing the source of that version. Copyright is held by the author, so separate commercial terms can be arranged on request.
+The AGPL is deliberate. This was built as a working demo to pitch to workshops rather than as a teaching example, and it is a complete deployed system rather than a sketch. Anyone may study, modify, and run it — but running a modified version as a network service means publishing the source of that version. Copyright is held by the author, so separate commercial terms can be arranged on request.
