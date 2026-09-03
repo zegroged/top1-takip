@@ -13,6 +13,8 @@
 ![Docker](https://img.shields.io/badge/Docker-compose-2496ED?style=flat-square&logo=docker)
 ![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue)
 
+**How this was built:** the code was written with AI assistance and reviewed by the author.
+
 ## Overview
 
 Small workshops — a tiling contractor, an auto repair shop — lose a real part of every day to the same phone call: *"is it done yet?"* The owner has no system, so the answer is a verbal guess, and the customer calls again tomorrow. The obvious fix is a customer portal, but the usual portal is wrong for this audience: someone who will check on their car six times over two weeks is not going to create an account, verify an email, and remember a password.

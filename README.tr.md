@@ -13,6 +13,8 @@
 ![Docker](https://img.shields.io/badge/Docker-compose-2496ED?style=flat-square&logo=docker)
 ![Lisans: AGPL v3](https://img.shields.io/badge/Lisans-AGPL%20v3-blue)
 
+**Nasıl yazıldı:** kod yapay zekâ yardımıyla yazıldı ve yazar tarafından gözden geçirildi.
+
 ## Genel bakış
 
 Küçük atölyeler — bir fayans ustası, bir oto tamirci — her günün gerçek bir bölümünü aynı telefona kaptırır: *"bitti mi?"* Sahibin sistemi yoktur, dolayısıyla cevap sözlü bir tahmindir ve müşteri yarın yine arar. Akla gelen çözüm bir müşteri portalıdır, ama alışıldık portal bu kitle için yanlıştır: arabasını iki hafta boyunca altı kez soracak biri, hesap açıp e-posta doğrulayıp parola ezberleyecek biri değildir.
