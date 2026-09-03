@@ -11,7 +11,7 @@
 ![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql)
 ![Tailwind v4](https://img.shields.io/badge/Tailwind-v4-38BDF8?style=flat-square&logo=tailwindcss)
 ![Docker](https://img.shields.io/badge/Docker-compose-2496ED?style=flat-square&logo=docker)
-![License MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square)
+![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue)
 
 ## Overview
 
@@ -134,4 +134,6 @@ It is published because the code is a fair sample of how I work: a real database
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+AGPL-3.0 — see [LICENSE](LICENSE).
+
+This is a running commercial product, not a reference implementation. The AGPL is deliberate: anyone may read, learn from, and modify this code, but running a modified version as a network service requires publishing the source of that version. Copyright is held by the author, so separate commercial terms can be arranged on request.
