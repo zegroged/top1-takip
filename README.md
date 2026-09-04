@@ -4,6 +4,7 @@
 
 **Live demo: [to-p1.com](https://to-p1.com)** · [Türkçe README](README.tr.md)
 
+[![tests](https://github.com/zegroged/top1-takip/actions/workflows/test.yml/badge.svg)](https://github.com/zegroged/top1-takip/actions/workflows/test.yml)
 ![Next.js 15](https://img.shields.io/badge/Next.js-15-000000?style=flat-square&logo=next.js)
 ![React 19](https://img.shields.io/badge/React-19-149ECA?style=flat-square&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript)
